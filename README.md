@@ -1,45 +1,31 @@
-# 🏛️ SDG Control — Administração e Controlo
+# sdg-control
 
-API administrativa da plataforma SDG para gestão de **organizações**, **hotéis**, **slugs** e **provisionamento**.
-Responsável pela base `sdg_control` no namespace `platform-system`.
+API de Administração e Controlo da plataforma SDG. É a fonte oficial de hotéis, slugs e estado do hotel, ligada ao PostgreSQL `sdg_control` no namespace `platform-system`.
 
-## 🛠️ Stack
+Usa Java 25, Spring Boot 4.1.1, Spring WebMVC, JPA, PostgreSQL, Validation, Actuator e OpenAPI.
 
-- **Java 21** (Corretto)
-- **Spring Boot 3.3.2**
-- **Spring Web / Actuator / Validation**
-- **Lombok**
-- **Springdoc OpenAPI** (Swagger UI)
-- **Maven**
+## Fluxo Control → Auth
 
-## ▶️ Como Executar
+Ao criar um hotel, a API grava o hotel e o evento `HotelCreated` na outbox na mesma transação. Em seguida sincroniza a projeção mínima do hotel na `api-auth-identity-core`. A Auth mantém `auth_hotels` e pode então criar vínculos locais de utilizador por `hotel_id`.
 
-### Pré-requisitos
+As APIs não partilham acesso SQL. A comunicação interna usa a chave `CONTROL_TO_AUTH_KEY`, injetada por Secret no Kubernetes.
 
-- JDK 21+
-- Maven 3.9+
+## Endpoints iniciais
 
-### Executar
+| Método | Rota | Finalidade |
+| --- | --- | --- |
+| `POST` | `/api/control/hotels` | Criar hotel com `name` e `slug`. |
+| `GET` | `/api/control/hotels` | Listar hotéis. |
+| `GET` | `/api/control/hotels/{hotelId}` | Consultar hotel. |
+| `POST` | `/api/control/hotels/{hotelId}/memberships` | Criar vínculo de utilizador na Auth. |
+
+## Execução local
 
 ```bash
-cd sdg-control
-mvn clean install
+export DB_PASSWORD='...'
+export CONTROL_TO_AUTH_KEY='...'
+mvn test
 mvn spring-boot:run
 ```
 
-### Acessos
-
-| Recurso | URL |
-| --- | --- |
-| Health check | http://localhost:8082/api/health |
-| Actuator Health | http://localhost:8082/actuator/health |
-| Swagger UI | http://localhost:8082/swagger-ui.html |
-| OpenAPI JSON | http://localhost:8082/api-docs |
-
-## 📦 Escopo Futuro
-
-- Organizações e hotéis (CRUD)
-- Gestão de slugs e namespaces
-- Orquestração de provisionamento (namespace, PostgreSQL, API por hotel)
-- Planos e subscrições
-- Auditoria administrativa
+Por padrão, a aplicação procura PostgreSQL em `localhost:5432/sdg_control`. Para integração local, defina também `AUTH_API_URL`.
