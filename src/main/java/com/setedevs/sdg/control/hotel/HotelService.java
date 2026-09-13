@@ -67,4 +67,3 @@ public class HotelService {
         );
     }
 }
-import com.setedevs.sdg.control.auth.AuthHotelClient;
