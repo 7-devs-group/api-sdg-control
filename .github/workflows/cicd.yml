@@ -1,0 +1,94 @@
+name: SDG CI/CD sdg-control
+
+on:
+  push:
+    branches:
+      - '*'
+      - '!master'
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build Docker image
+        id: docker_build
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64
+          push: false
+
+  deploy:
+    name: "[DEV] - Deploy sdg-control"
+    runs-on: ubuntu-latest
+    needs: build
+    if: |
+      (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true) ||
+      github.event_name == 'workflow_dispatch'
+
+    env:
+      SERVICE_NAME: "sdg-control"
+      ARGOCD_APP_PATH: "apps/platform-system/sdg-control"
+      NAMESPACE: "platform-system"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set Git Config
+        run: |
+          git config --global user.email "$(git --no-pager show -s --format='%ae')"
+          git config --global user.name "$(git --no-pager show -s --format='%an')"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Generate random tag
+        id: random_tag
+        run: echo "::set-output name=TAG::$(echo ${GITHUB_SHA::4})"
+
+      - name: Build and Push Docker image
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE_NAME }}:${{ steps.random_tag.outputs.TAG }}
+
+      - name: Argocd - Update Deployment Configuration
+        run: |
+          git clone https://${{ secrets.PASSWORD_GIT_CI }}@github.com/SGD-project-twtor/argocd.git
+          cd argocd/${{ env.ARGOCD_APP_PATH }}/
+          cp deployment.yaml deployment.yaml.old
+          sed -i "s|image:.*$|image: ${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE_NAME }}:${{ steps.random_tag.outputs.TAG }}|" deployment.yaml
+          git add deployment.yaml.old
+          git add deployment.yaml
+          git commit -m "[${{ env.SERVICE_NAME }}] - Update Docker image tag: ${{ steps.random_tag.outputs.TAG }}"
+          git push origin master
+          echo "Check Deploy in http://argocd.setedevs.com.br"
