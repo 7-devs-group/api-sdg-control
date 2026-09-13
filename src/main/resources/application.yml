@@ -1,6 +1,14 @@
 spring:
   application:
     name: sdg-control
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:sdg_control}
+    username: ${DB_USERNAME:control}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
 
 server:
   port: ${PORT:80}
@@ -19,3 +27,8 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+app:
+  auth:
+    base-url: ${AUTH_API_URL:http://localhost:8080}
+    integration-key: ${CONTROL_TO_AUTH_KEY:}
