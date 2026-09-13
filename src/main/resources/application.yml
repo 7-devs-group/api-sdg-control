@@ -3,7 +3,7 @@ spring:
     name: sdg-control
 
 server:
-  port: ${PORT:8082}
+  port: ${PORT:80}
 
 management:
   endpoints:
