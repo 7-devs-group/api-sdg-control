@@ -1,0 +1,26 @@
+meta {
+  name: Selecionar Hotel Teste para utilizador
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{authUrl}}/api/auth/select-hotel
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "selectionToken": "{{selectionTestToken}}",
+    "hotelId": "{{hotelTestId}}"
+  }
+}
+
+docs {
+  Copiar accessToken para accessTestToken no ambiente local.
+}

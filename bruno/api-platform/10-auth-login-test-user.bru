@@ -1,0 +1,26 @@
+meta {
+  name: Login utilizador de teste
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{authUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{testEmail}}",
+    "password": "{{testPassword}}"
+  }
+}
+
+docs {
+  Copiar selectionToken para selectionTestToken no ambiente local.
+}
