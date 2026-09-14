@@ -1,7 +1,7 @@
 meta {
   name: Criar utilizador de teste no Hotel Teste
   type: http
-  seq: 6
+  seq: 4
 }
 
 post {
@@ -10,12 +10,12 @@ post {
   auth: bearer
 }
 
-auth:bearer {
-  token: {{accessToken}}
-}
-
 headers {
   Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{accessToken}}
 }
 
 body:json {

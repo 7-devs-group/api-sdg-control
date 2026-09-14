@@ -1,11 +1,11 @@
 meta {
-  name: Listar hotéis e copiar IDs
+  name: Consultar identidade do hotel selecionado
   type: http
-  seq: 3
+  seq: 2
 }
 
 get {
-  url: {{controlUrl}}/api/control/hotels
+  url: {{authUrl}}/api/auth/me
   body: none
   auth: bearer
 }

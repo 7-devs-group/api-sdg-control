@@ -1,21 +1,21 @@
 meta {
-  name: Criar vínculo admin no New Hotel
+  name: Criar vínculo admin no Hotel Teste
   type: http
   seq: 5
 }
 
 post {
-  url: {{controlUrl}}/api/control/hotels/{{newHotelId}}/memberships
+  url: {{controlUrl}}/api/control/hotels/{{hotelTestId}}/memberships
   body: json
   auth: bearer
 }
 
-auth:bearer {
-  token: {{accessToken}}
-}
-
 headers {
   Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{accessToken}}
 }
 
 body:json {
