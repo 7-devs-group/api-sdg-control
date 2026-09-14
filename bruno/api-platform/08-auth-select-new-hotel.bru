@@ -1,0 +1,26 @@
+meta {
+  name: Selecionar New Hotel e obter JWT
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{authUrl}}/api/auth/select-hotel
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "selectionToken": "{{selectionToken}}",
+    "hotelId": "{{newHotelId}}"
+  }
+}
+
+docs {
+  Copiar accessToken e refreshToken da resposta para o ambiente local.
+}

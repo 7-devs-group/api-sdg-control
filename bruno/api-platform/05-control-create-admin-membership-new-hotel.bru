@@ -1,0 +1,24 @@
+meta {
+  name: Criar vínculo admin no New Hotel
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{controlUrl}}/api/control/hotels/{{newHotelId}}/memberships
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Administrador de Teste",
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}",
+    "role": "HOTEL_ADMIN"
+  }
+}

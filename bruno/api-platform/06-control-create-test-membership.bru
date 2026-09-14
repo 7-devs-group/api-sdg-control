@@ -1,0 +1,24 @@
+meta {
+  name: Criar utilizador de teste no Hotel Teste
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{controlUrl}}/api/control/hotels/{{hotelTestId}}/memberships
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Utilizador de Teste",
+    "email": "{{testEmail}}",
+    "password": "{{testPassword}}",
+    "role": "HOUSEKEEPER"
+  }
+}

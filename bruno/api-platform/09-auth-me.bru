@@ -1,0 +1,15 @@
+meta {
+  name: Consultar identidade do hotel selecionado
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{authUrl}}/api/auth/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

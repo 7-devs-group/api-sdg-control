@@ -1,0 +1,26 @@
+meta {
+  name: Login admin e obter hotéis disponíveis
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{authUrl}}/api/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "email": "{{adminEmail}}",
+    "password": "{{adminPassword}}"
+  }
+}
+
+docs {
+  Copiar selectionToken e a lista de hotels da resposta para o ambiente local.
+}

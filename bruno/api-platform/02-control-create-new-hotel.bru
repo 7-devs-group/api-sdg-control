@@ -1,0 +1,22 @@
+meta {
+  name: Criar New Hotel
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{controlUrl}}/api/control/hotels
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "New Hotel",
+    "slug": "new-hotel"
+  }
+}

@@ -1,0 +1,22 @@
+meta {
+  name: Criar Hotel Teste
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{controlUrl}}/api/control/hotels
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "Hotel Teste",
+    "slug": "hotel-teste"
+  }
+}
