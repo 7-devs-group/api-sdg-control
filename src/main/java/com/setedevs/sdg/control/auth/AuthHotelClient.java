@@ -27,7 +27,7 @@ public class AuthHotelClient {
                 .uri("/internal/auth/hotels")
                 .header("X-SDG-Control-Key", integrationKey)
                 .header(HttpHeaders.CONTENT_TYPE, "application/json")
-                .body(new AuthHotelSyncRequest(hotel.getId(), hotel.getSlug(), hotel.getStatus() == HotelStatus.ACTIVE))
+                .body(new AuthHotelSyncRequest(hotel.getId(), hotel.getName(), hotel.getSlug(), hotel.getStatus() == HotelStatus.ACTIVE))
                 .retrieve()
                 .toBodilessEntity();
     }
