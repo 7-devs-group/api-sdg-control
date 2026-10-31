@@ -18,18 +18,47 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.client.RestClient;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+interface PasswordChangeStatusClient {
+    boolean isPasswordChangeRequired(UUID userId);
+}
+
+@Component
+class AuthPasswordChangeStatusClient implements PasswordChangeStatusClient {
+    private final RestClient authClient;
+    private final String integrationKey;
+
+    AuthPasswordChangeStatusClient(@Value("${app.auth.base-url}") String authBaseUrl,
+            @Value("${app.auth.integration-key}") String integrationKey) {
+        authClient = RestClient.builder().baseUrl(authBaseUrl).build();
+        this.integrationKey = integrationKey;
+    }
+
+    @Override
+    public boolean isPasswordChangeRequired(UUID userId) {
+        Map<?, ?> response = authClient.get().uri("/internal/auth/users/{userId}/password-change-required", userId)
+                .header("X-SDG-Control-Key", integrationKey).retrieve().body(Map.class);
+        return Boolean.TRUE.equals(response.get("passwordChangeRequired"));
+    }
+}
 
 @Component
 class JwtFilter extends OncePerRequestFilter {
     private final SecretKey key;
-    JwtFilter(@Value("${app.jwt.secret}") String secret) {
+    private final PasswordChangeStatusClient passwordStatusClient;
+    JwtFilter(@Value("${app.jwt.secret}") String secret,
+              PasswordChangeStatusClient passwordStatusClient) {
         if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) throw new IllegalStateException("JWT_SECRET must contain at least 32 bytes");
         key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.passwordStatusClient = passwordStatusClient;
     }
     @Override protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain) throws ServletException, IOException {
         String value = req.getHeader("Authorization");
@@ -37,6 +66,12 @@ class JwtFilter extends OncePerRequestFilter {
             try {
                 Claims c = Jwts.parser().verifyWith(key).build().parseSignedClaims(value.substring(7)).getPayload();
                 if (!"access".equals(c.get("typ", String.class))) throw new IllegalArgumentException();
+                boolean requiresChange = Boolean.TRUE.equals(c.get("password_change_required", Boolean.class))
+                        || passwordStatusClient.isPasswordChangeRequired(UUID.fromString(c.getSubject()));
+                if (requiresChange) {
+                    res.sendError(HttpServletResponse.SC_FORBIDDEN, "Password change required");
+                    return;
+                }
                 String role = c.get("role", String.class);
                 var auth = new UsernamePasswordAuthenticationToken(c.getSubject(), null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                 auth.setDetails(c);
